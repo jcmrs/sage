@@ -12,7 +12,7 @@ SAGE is built for synergy between Human and AI to accelerate learning through pe
 
 SAGE runs out-of-the-box with Claude Code (Subscription) and Gemini CLI (0Auth) (gemini-2.5-pro) as well as remote API Keys and local AI (Ollama, LM Studio). 
 
-SAGE features integrated local Git + Repository Management and remote GitHub Management incorporating advanced Git/GitHub Protocols (inspired by [Conventional Commits](https://www.conventionalcommits.org/) and enhanced to serve as "process memory" of the project, creating a Git-based memory graph for AI which includes the "why" and "why not" of decisions and the "how did we get here").
+SAGE features integrated local Git + Repository Management and remote GitHub Management incorporating advanced Git/GitHub Protocols (inspired by [Conventional Commits](https://www.conventionalcommits.org/) and enhanced to serve as "process memory" of the project, creating a Git-based memory graph for AI which includes the "why" and "why not" of decisions and the "how did we get here", and .. "no, that we should not do, at least not at this point").
 
 ## Key Concepts
 
