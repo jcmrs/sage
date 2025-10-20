@@ -9,7 +9,7 @@ gemini_provider = LLMProvider(provider_cli_command="gemini")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory="../../ui", **kwargs)
+                super().__init__(*args, directory="../ui", **kwargs)
 
     def do_POST(self):
         if self.path == '/ask':
