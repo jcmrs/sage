@@ -1,63 +1,52 @@
-import http.server
-import socketserver
-import json
-import threading
+import asyncio
+import uvicorn
+from fastapi import FastAPI, Body
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+import os
+import signal
+
 from .core.llm_provider import LLMProvider
 from .core.git_manager import GitManager
 
-PORT = 8000
+# --- Pydantic Models ---
+class AskRequest(BaseModel):
+    prompt: str
 
+# --- FastAPI App ---
+app = FastAPI()
+
+# --- Core Logic Instances ---
 gemini_provider = LLMProvider(provider_cli_command="gemini")
-git_manager = GitManager(repo_path="..")
+# The repo_path is relative to the execution directory (src), so we go up one level.
+git_manager = GitManager(repo_path="..") 
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory="../ui", **kwargs)
+# --- API Endpoints ---
+@app.post("/ask")
+async def ask(request: AskRequest):
+    response = await gemini_provider.ask(request.prompt)
+    return {"response": response}
 
-    def do_POST(self):
-        if self.path == '/ask':
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data)
+@app.get("/git/status")
+async def get_git_status():
+    status = git_manager.get_status()
+    confirmed_status = f"Successfully retrieved Git status:\n---\n{status}"
+    return {"status": confirmed_status}
 
-            prompt = data.get('prompt')
-            if prompt:
-                response = gemini_provider.ask(prompt)
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'response': response}).encode('utf-8'))
-            else:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(b'Bad Request: No prompt provided')
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'Not Found')
+@app.get("/shutdown")
+async def shutdown():
+    # This will send a SIGINT (Ctrl+C) to the current process, which Uvicorn will catch to shut down gracefully.
+    os.kill(os.getpid(), signal.SIGINT)
+    return {"message": "Server is shutting down..."}
 
-    def do_GET(self):
-        if self.path == '/shutdown':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"message": "Server is shutting down..."}).encode('utf-8'))
-            # Shutdown the server in a new thread to allow the response to be sent
-            threading.Thread(target=self.server.shutdown).start()
-        elif self.path == '/git/status':
-            status = git_manager.get_status()
-            confirmed_status = f"Successfully retrieved Git status:\n---\n{status}"
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': confirmed_status}).encode('utf-8'))
-        else:
-            super().do_GET()
+# --- Static Files ---
+# Mount the UI directory to serve static files (HTML, CSS, JS)
+# The path is relative to this file's location (src/sage/main.py)
+app.mount("/", StaticFiles(directory="../../ui", html=True), name="ui")
 
+# --- Main Entry Point ---
 def main():
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print("serving at port", PORT)
-        print("Open http://localhost:8000 in your browser")
-        httpd.serve_forever()
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
 if __name__ == "__main__":
     main()

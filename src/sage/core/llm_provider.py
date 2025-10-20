@@ -1,19 +1,24 @@
-import subprocess
+import asyncio
 
 class LLMProvider:
     def __init__(self, provider_cli_command):
         self.provider_cli_command = provider_cli_command
 
-    def ask(self, prompt):
-        try:
-            # Execute the command and capture the output
-            result = subprocess.run(
-                f'{self.provider_cli_command} "{prompt}"',
-                shell=True,
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            return result.stdout.strip()
-        except subprocess.CalledProcessError as e:
-            return f"An error occurred: {e.stderr}"
+    async def ask(self, prompt):
+        # Create the shell command
+        cmd = f'{self.provider_cli_command} "{prompt}"'
+        
+        # Create the subprocess
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        # Wait for the process to finish and get the output
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode == 0:
+            return stdout.decode().strip()
+        else:
+            return f"An error occurred: {stderr.decode()}"
