@@ -46,10 +46,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             threading.Thread(target=self.server.shutdown).start()
         elif self.path == '/git/status':
             status = git_manager.get_status()
+            confirmed_status = f"Successfully retrieved Git status:\n---\n{status}"
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'status': status}).encode('utf-8'))
+            self.wfile.write(json.dumps({'status': confirmed_status}).encode('utf-8'))
         else:
             super().do_GET()
 
