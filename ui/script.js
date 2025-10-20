@@ -19,27 +19,6 @@ document.getElementById('git-status-btn').addEventListener('click', function() {
     });
 });
 
-document.getElementById('shutdown-btn').addEventListener('click', function() {
-    addMessageToHistory('System', 'Server shutdown requested...');
-    fetch('/shutdown')
-    .then(response => response.json())
-    .then(data => {
-        addMessageToHistory('System', data.message);
-    }).catch(err => {
-        addMessageToHistory('System', 'Server has been shut down.');
-    });
-});
-
-document.getElementById('git-status-btn').addEventListener('click', function() {
-    fetch('/git/status')
-    .then(response => response.json())
-    .then(data => {
-        // Add Git status to chat history, preserving whitespace
-        const formattedStatus = `<pre>${data.status}</pre>`;
-        addMessageToHistory('Git', formattedStatus);
-    });
-});
-
 document.getElementById('user-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         const userInput = e.target.value;

@@ -58,11 +58,5 @@ def main():
         print("serving at port", PORT)
         print("Open http://localhost:8000 in your browser")
         httpd.serve_forever()
-def main():
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print("serving at port", PORT)
-        print("Open http://localhost:8000 in your browser")
-        httpd.serve_forever()
-
 if __name__ == "__main__":
     main()
